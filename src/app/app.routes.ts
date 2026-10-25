@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { PRODUCT_NAVIGATION } from './domain/domain-navigation';
 
 export const routes: Routes = [
   {
@@ -23,12 +24,12 @@ export const routes: Routes = [
           import('./features/workspace/workspace-page').then((m) => m.WorkspacePage),
         data: { view: 'overview' },
       },
-      {
-        path: 'modules',
+      ...PRODUCT_NAVIGATION.map((item) => ({
+        path: item.path,
         loadComponent: () =>
           import('./features/workspace/workspace-page').then((m) => m.WorkspacePage),
-        data: { view: 'modules' },
-      },
+        data: { view: 'domain', section: item.key },
+      })),
       {
         path: 'activity',
         loadComponent: () =>

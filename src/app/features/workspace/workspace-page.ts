@@ -3,6 +3,7 @@ import { FormField, form, required } from '@angular/forms/signals';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { TranslatePipe } from '../../core/i18n/i18n';
+import { PRODUCT_NAVIGATION } from '../../domain/domain-navigation';
 import { PRODUCT } from '../../domain/product-manifest';
 import { PageHeader } from '../../shared/ui/page-header';
 import { SlideOver } from '../../shared/ui/slide-over';
@@ -44,7 +45,7 @@ interface RecordRow {
               </div>
               <h2 class="m-0 text-2xl font-black">Operasyonlar kontrol altında</h2>
               <p class="max-w-2xl text-sm leading-6 text-slate-300">
-                Tüm modüller MainAPI ile senkronize; kritik iş akışları anlık takip ediliyor.
+                Tüm iş akışları MainAPI ile senkronize; kritik operasyonlar anlık takip ediliyor.
               </p>
             </div>
             <div class="grid grid-cols-3 gap-3 text-center">
@@ -172,46 +173,133 @@ interface RecordRow {
           </div>
         </section>
       </div>
-    } @else if (view === 'modules') {
+    } @else if (view === 'domain') {
       <div class="space-y-6">
         <app-page-header
-          eyebrow="Ürün Yapısı"
-          title="Modüller"
-          description="Operasyonunuzun bütün uyumluluk adımlarını tek merkezden yönetin."
-        />
-        <div class="grid gap-5 md:grid-cols-2">
-          @for (module of product.modules; track module.nameKey; let index = $index) {
-            <article class="odv-card p-6">
-              <div class="flex items-start justify-between">
-                <span
-                  class="grid size-12 place-items-center rounded-2xl bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
-                  ><span class="material-symbols-rounded">{{ module.icon }}</span></span
-                ><span class="odv-badge-success">Aktif</span>
-              </div>
-              <h2 class="mb-2 mt-5 text-lg font-black">{{ module.nameKey | t }}</h2>
-              <p class="min-h-10 text-sm leading-6 text-slate-500">
-                {{ module.descriptionKey | t }}
-              </p>
-              <div
-                class="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-700"
+          [eyebrow]="product.name"
+          [title]="domain.title"
+          [description]="domain.description"
+        >
+          <button actions type="button" class="odv-btn-primary" (click)="drawerOpen.set(true)">
+            <span class="material-symbols-rounded">add</span>Yeni kayıt
+          </button>
+        </app-page-header>
+        <section class="grid gap-4 sm:grid-cols-3" aria-label="İş alanı özeti">
+          <article class="odv-card p-5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500"
+              >Toplam kayıt</span
+            >
+            <strong class="mt-3 block text-3xl font-black">{{ 24 + domainIndex }}</strong>
+            <span class="mt-1 block text-xs text-slate-500">Bu iş alanındaki güncel kayıtlar</span>
+          </article>
+          <article class="odv-card p-5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500"
+              >Aksiyon gerekli</span
+            >
+            <strong class="mt-3 block text-3xl font-black text-amber-600">{{
+              2 + domainIndex
+            }}</strong>
+            <span class="mt-1 block text-xs text-slate-500">Son tarihi yaklaşan işlemler</span>
+          </article>
+          <article class="odv-card p-5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500"
+              >Tamamlanma</span
+            >
+            <strong class="mt-3 block text-3xl font-black text-emerald-600"
+              >%{{ 94 - domainIndex }}</strong
+            >
+            <span class="mt-1 block text-xs text-slate-500">Güncel uygunluk oranı</span>
+          </article>
+        </section>
+        <section class="odv-card overflow-hidden">
+          <div
+            class="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-slate-700 sm:flex-row sm:items-center"
+          >
+            <label class="relative flex-1">
+              <span class="sr-only">{{ domain.title }} kayıtlarında ara</span>
+              <span
+                class="material-symbols-rounded pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-slate-400"
+                >search</span
               >
-                <span class="text-xs font-bold text-slate-400">{{ 12 + index * 7 }} açık kayıt</span
-                ><button type="button" class="odv-btn-soft" (click)="selectedModule.set(index)">
-                  Modülü aç
-                  <span class="material-symbols-rounded directional-icon">arrow_forward</span>
-                </button>
-              </div>
-              @if (selectedModule() === index) {
-                <div
-                  class="mt-4 rounded-xl bg-violet-50 p-4 text-sm text-violet-800 dark:bg-violet-500/10 dark:text-violet-200"
-                >
-                  Modül çalışma alanı hazır. Filtreler ve görev kuyruğu API bağlantısıyla burada
-                  görüntülenecek.
-                </div>
-              }
-            </article>
-          }
-        </div>
+              <input
+                class="odv-input ps-10"
+                type="search"
+                [placeholder]="domain.title + ' içinde ara…'"
+                [value]="search()"
+                (input)="search.set($any($event.target).value)"
+              />
+            </label>
+            <select class="odv-input !w-auto" aria-label="Durum filtresi">
+              <option>Tüm durumlar</option>
+              <option>Aktif</option>
+              <option>Aksiyon gerekli</option>
+            </select>
+          </div>
+          <div class="overflow-x-auto custom-scroll">
+            <table class="w-full min-w-[720px]">
+              <thead>
+                <tr>
+                  <th class="odv-th">{{ domain.title }}</th>
+                  <th class="odv-th">Referans</th>
+                  <th class="odv-th">Lokasyon</th>
+                  <th class="odv-th">Durum</th>
+                  <th class="odv-th">Son işlem</th>
+                  <th class="odv-th"><span class="sr-only">İşlem</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of domainRows(); track row.id; let index = $index) {
+                  <tr class="hover:bg-violet-50/40 dark:hover:bg-slate-800">
+                    <td class="odv-td">
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="grid size-9 place-items-center rounded-xl bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300"
+                          ><span class="material-symbols-rounded">{{ domain.icon }}</span></span
+                        ><strong>{{ row.name }}</strong>
+                      </div>
+                    </td>
+                    <td class="odv-td font-mono text-xs text-slate-500">{{ row.code }}</td>
+                    <td class="odv-td text-slate-500">{{ row.location }}</td>
+                    <td class="odv-td">
+                      <span
+                        [class]="
+                          row.status === 'active' ? 'odv-badge-success' : 'odv-badge-warning'
+                        "
+                        >{{ row.status === 'active' ? 'Aktif' : 'Aksiyon gerekli' }}</span
+                      >
+                    </td>
+                    <td class="odv-td text-slate-500">{{ row.updated }}</td>
+                    <td class="odv-td text-end">
+                      <button
+                        type="button"
+                        class="odv-btn-soft"
+                        (click)="selectedModule.set(index)"
+                      >
+                        Detayı aç
+                      </button>
+                    </td>
+                  </tr>
+                  @if (selectedModule() === index) {
+                    <tr>
+                      <td
+                        colspan="6"
+                        class="bg-violet-50/50 px-6 py-4 text-sm text-slate-600 dark:bg-violet-500/5 dark:text-slate-300"
+                      >
+                        <strong>{{ row.name }}</strong> kaydının görevleri, belgeleri ve denetim izi
+                        MainAPI üzerinden bu alanda yönetilir.
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+          <footer
+            class="border-t border-slate-200 p-4 text-xs text-slate-500 dark:border-slate-700"
+          >
+            Toplam <strong>{{ domainRows().length }}</strong> kayıt gösteriliyor.
+          </footer>
+        </section>
       </div>
     } @else if (view === 'activity') {
       <div class="space-y-6">
@@ -305,9 +393,17 @@ interface RecordRow {
   `,
 })
 export class WorkspacePage {
+  private readonly route = inject(ActivatedRoute);
   readonly product = PRODUCT;
-  readonly view = inject(ActivatedRoute).snapshot.data['view'] as
-    'overview' | 'modules' | 'activity' | 'settings';
+  readonly view = this.route.snapshot.data['view'] as
+    'overview' | 'domain' | 'activity' | 'settings';
+  readonly section = this.route.snapshot.data['section'] as string;
+  readonly domain =
+    PRODUCT_NAVIGATION.find((item) => item.key === this.section) ?? PRODUCT_NAVIGATION[0];
+  readonly domainIndex = Math.max(
+    0,
+    PRODUCT_NAVIGATION.findIndex((item) => item.key === this.section),
+  );
   readonly apiBaseUrl = environment.apiBaseUrl;
   readonly search = signal('');
   readonly archived = signal(false);
@@ -317,6 +413,7 @@ export class WorkspacePage {
   readonly draftModel = signal({ name: '', location: '' });
   readonly draftForm = form(this.draftModel, (p) => required(p.name));
   readonly rows = signal<RecordRow[]>(this.seedRows());
+  readonly domainRows = computed(() => this.filtered().filter((row) => !row.archived));
   readonly activeCount = computed(() => this.rows().filter((r) => !r.archived).length);
   readonly archivedCount = computed(() => this.rows().filter((r) => r.archived).length);
   readonly filtered = computed(() => {

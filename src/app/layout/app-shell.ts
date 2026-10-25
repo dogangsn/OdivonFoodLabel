@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../core/auth/auth-store';
 import { I18nStore, SupportedLang } from '../core/i18n/i18n';
+import { PRODUCT_NAVIGATION } from '../domain/domain-navigation';
 import { PRODUCT } from '../domain/product-manifest';
 
 @Component({
@@ -23,7 +24,7 @@ import { PRODUCT } from '../domain/product-manifest';
         ></button>
       }
       <aside
-        class="fixed inset-y-0 start-0 z-40 w-72 border-e border-slate-200 bg-white p-5 transition-transform dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0"
+        class="fixed inset-y-0 start-0 z-40 flex w-72 flex-col border-e border-slate-200 bg-white p-5 transition-transform dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0"
         [class.-translate-x-full]="!mobileOpen()"
       >
         <div class="mb-7 flex items-center justify-between">
@@ -61,7 +62,7 @@ import { PRODUCT } from '../domain/product-manifest';
             </div>
           </div>
         </div>
-        <nav aria-label="Ana menü" class="space-y-1">
+        <nav aria-label="Ana menü" class="custom-scroll flex-1 space-y-1 overflow-y-auto pe-1">
           @for (item of menu; track item.path) {
             <a
               [routerLink]="item.path"
@@ -73,7 +74,7 @@ import { PRODUCT } from '../domain/product-manifest';
             >
           }
         </nav>
-        <div class="absolute inset-x-5 bottom-5">
+        <div class="mt-4">
           <div
             class="mb-3 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 p-4 text-white"
           >
@@ -144,7 +145,11 @@ export class AppShell {
   readonly dark = signal(localStorage.getItem('odivon:theme') === 'dark');
   readonly menu = [
     { path: '/overview', icon: 'dashboard', label: 'Genel Bakış' },
-    { path: '/modules', icon: 'dataset', label: 'Modüller' },
+    ...PRODUCT_NAVIGATION.map((item) => ({
+      path: `/${item.path}`,
+      icon: item.icon,
+      label: item.label,
+    })),
     { path: '/activity', icon: 'history', label: 'Aktiviteler' },
     { path: '/settings', icon: 'settings', label: 'Ayarlar' },
   ];
