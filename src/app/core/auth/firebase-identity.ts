@@ -13,6 +13,8 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
+  reload,
+  sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
   signOut,
@@ -76,5 +78,22 @@ export class FirebaseIdentity {
   async logout(): Promise<void> {
     await this.initialize();
     if (this.auth) await signOut(this.auth);
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    await this.initialize();
+    if (!this.auth) throw new Error('Firebase Auth is not configured.');
+    await sendPasswordResetEmail(this.auth, email.trim().toLowerCase());
+  }
+
+  async refreshUser(): Promise<User | null> {
+    await this.initialize();
+    const user = this.auth?.currentUser ?? null;
+    if (user) {
+      await reload(user);
+      await user.getIdToken(true);
+      this.user.set(user);
+    }
+    return user;
   }
 }

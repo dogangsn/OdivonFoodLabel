@@ -13,7 +13,24 @@ body { background: radial-gradient(circle at 82% -10%, rgb(124 58 237 / .09), tr
 .dark body { background: radial-gradient(circle at 82% -10%, rgb(124 58 237 / .16), transparent 30rem), #0b1120; color: #f8fafc; }
 button, input, select { font: inherit; }
 button { cursor: pointer; border: 0; }
-.material-symbols-rounded { font-size: 20px; line-height: 1; }
+.material-symbols-rounded {
+  display: inline-block;
+  overflow: hidden;
+  width: 1em;
+  font-family: 'Material Symbols Rounded';
+  font-size: 20px;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
 .custom-scroll { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
 .rtl .directional-icon { transform: scaleX(-1); }
 

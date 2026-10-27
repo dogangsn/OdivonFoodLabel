@@ -1,5 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
-import { email, FormField, form, minLength, required, submit } from '@angular/forms/signals';
+import {
+  email,
+  FormField,
+  form,
+  minLength,
+  required,
+  submit,
+  validate,
+} from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth/auth-store';
 import { TranslatePipe } from '../../core/i18n/i18n';
@@ -28,10 +36,10 @@ import { PRODUCT } from '../../domain/product-manifest';
         <div class="relative max-w-2xl">
           <span
             class="mb-5 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold"
-            >Uyumluluk operasyon merkezi</span
+            >Gıda etiketi operasyon merkezi</span
           >
           <h1 class="m-0 text-5xl font-black leading-tight">
-            Karmaşık mevzuatı<br />net aksiyonlara dönüştürün.
+            Her ürünün içeriğini doğrulayın,<br />her pazara güvenle çıkın.
           </h1>
           <p class="mt-6 max-w-xl text-base leading-7 text-indigo-100">
             {{ product.promiseKey | t }}
@@ -130,6 +138,15 @@ import { PRODUCT } from '../../domain/product-manifest';
                 >
               }
             </label>
+            @if (!isRegister) {
+              <div class="-mt-2 text-end">
+                <a
+                  routerLink="/forgot-password"
+                  class="text-xs font-bold text-violet-600 hover:underline"
+                  >Şifremi unuttum</a
+                >
+              </div>
+            }
             @if (error()) {
               <div
                 role="alert"
@@ -138,22 +155,32 @@ import { PRODUCT } from '../../domain/product-manifest';
                 {{ error() }}
               </div>
             }
+            @if (isRegister) {
+              <label
+                class="flex items-start gap-3 rounded-xl bg-slate-100 p-3 text-xs leading-5 dark:bg-slate-800"
+              >
+                <input
+                  class="mt-1 size-4 accent-violet-600"
+                  type="checkbox"
+                  [checked]="consent()"
+                  (change)="consent.set($any($event.target).checked)"
+                />
+                <span
+                  ><a class="font-bold text-violet-600" href="/legal/terms" target="_blank"
+                    >Kullanım koşullarını</a
+                  >
+                  ve
+                  <a class="font-bold text-violet-600" href="/legal/privacy" target="_blank"
+                    >gizlilik bildirimini</a
+                  >
+                  okudum, kabul ediyorum.</span
+                >
+              </label>
+            }
             <button class="odv-btn-primary w-full" type="submit" [disabled]="busy()">
               {{ busy() ? 'İşleniyor…' : isRegister ? 'Ücretsiz hesap oluştur' : 'Giriş yap' }}
             </button>
           </form>
-          <div class="my-5 flex items-center gap-3 text-xs text-slate-400">
-            <span class="h-px flex-1 bg-slate-200 dark:bg-slate-700"></span>veya<span
-              class="h-px flex-1 bg-slate-200 dark:bg-slate-700"
-            ></span>
-          </div>
-          <button
-            type="button"
-            class="odv-btn-ghost w-full border border-slate-200 dark:border-slate-700"
-            (click)="demo()"
-          >
-            <span class="material-symbols-rounded">play_circle</span>Demo hesabıyla incele
-          </button>
           <p class="mt-6 text-center text-sm text-slate-500">
             {{ isRegister ? 'Zaten hesabınız var mı?' : 'Henüz hesabınız yok mu?' }}
             <a
@@ -176,13 +203,20 @@ export class AuthPage {
   readonly showPassword = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
+  readonly consent = signal(false);
   readonly model = signal({ name: '', company: '', email: '', password: '' });
   readonly authForm = form(this.model, (p) => {
     if (this.isRegister) required(p.name);
     required(p.email);
     email(p.email);
     required(p.password);
-    minLength(p.password, 8);
+    minLength(p.password, this.isRegister ? 10 : 8);
+    if (this.isRegister)
+      validate(p.password, ({ value }) =>
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(value())
+          ? undefined
+          : { kind: 'passwordStrength', message: 'Şifre yeterince güçlü değil.' },
+      );
   });
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
@@ -193,18 +227,16 @@ export class AuthPage {
       this.error.set('');
       try {
         const value = this.model();
-        if (this.isRegister) await this.auth.register(value.name, value.email, value.password);
+        if (this.isRegister && !this.consent()) throw new Error('Koşulları kabul etmelisiniz.');
+        if (this.isRegister)
+          await this.auth.register(value.name, value.company, value.email, value.password);
         else await this.auth.signIn(value.email, value.password);
         await this.router.navigateByUrl('/overview');
-      } catch {
-        this.error.set('İşlem tamamlanamadı. Bilgilerinizi kontrol edip tekrar deneyin.');
+      } catch (error) {
+        this.error.set(error instanceof Error ? error.message : 'İşlem tamamlanamadı.');
       } finally {
         this.busy.set(false);
       }
     });
-  }
-  demo(): void {
-    this.auth.continueDemo();
-    void this.router.navigateByUrl('/overview');
   }
 }

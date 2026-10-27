@@ -26,10 +26,13 @@
     "@angular/material": "^22.2.2",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
-    "firebase": "^12.4.0",
+    "firebase": "^13.1.0",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.25",
     "tslib": "^2.3.0"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.6"
   },
   "devDependencies": {
     "@angular/build": "^22.2.3",
