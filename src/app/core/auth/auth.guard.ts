@@ -40,4 +40,3 @@ export const pendingVerificationGuard: CanActivateFn = async () => {
   if (!session) return router.createUrlTree(['/login']);
   return session.emailVerified ? router.createUrlTree(['/overview']) : true;
 };
-
