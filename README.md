@@ -1,6 +1,6 @@
 # OdivonFoodLabel
 
-Odivon'un F‑Gas uyumluluk ve saha operasyonu ürünüdür. Angular 22, Signals, Tailwind CSS 4 ve Odivon UI Design System ile geliştirilir.
+Odivon'un gıda etiketi ve mevzuat uyum ürünüdür: ürün kartı, reçete, alerjen, besin bildirimi ve pazar onaylarını tek akışta yönetir. Angular 22, Signals, Tailwind CSS 4 ve Odivon UI Design System ile geliştirilir.
 
 ## Yerel geliştirme
 

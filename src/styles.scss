@@ -9,9 +9,11 @@
 :root.dark { color-scheme: dark; }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; margin: 0; }
-body { background: radial-gradient(circle at 82% -10%, rgb(124 58 237 / .09), transparent 28rem), #f8fafc; color: #0f172a; }
-.dark body { background: radial-gradient(circle at 82% -10%, rgb(124 58 237 / .16), transparent 30rem), #0b1120; color: #f8fafc; }
-button, input, select { font: inherit; }
+body { background: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
+.dark body { background: #0b1120; color: #f8fafc; }
+// Base rules live in Tailwind's base layer so utilities (odv-*, text-*, border-*) can override them.
+@layer base {
+button, input, select, textarea { font: inherit; }
 button { cursor: pointer; border: 0; }
 .material-symbols-rounded {
   display: inline-block;
@@ -31,6 +33,7 @@ button { cursor: pointer; border: 0; }
   font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
+}
 .custom-scroll { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
 .rtl .directional-icon { transform: scaleX(-1); }
 
@@ -38,3 +41,12 @@ button { cursor: pointer; border: 0; }
 .odv-swal-confirm { border-radius: .75rem !important; background: #6d28d9 !important; }
 .odv-swal-danger { border-radius: .75rem !important; background: #dc2626 !important; }
 .odv-swal-cancel { border-radius: .75rem !important; background: #e2e8f0 !important; color: #334155 !important; }
+
+@keyframes odv-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes odv-slide { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes odv-rise { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+.odv-fade-in { animation: odv-fade .18s ease-out; }
+.odv-slide-in { animation: odv-slide .22s cubic-bezier(.2, .8, .2, 1); }
+.rtl .odv-slide-in { animation-name: odv-fade; }
+.odv-rise { animation: odv-rise .3s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .odv-fade-in, .odv-slide-in, .odv-rise { animation: none; } }

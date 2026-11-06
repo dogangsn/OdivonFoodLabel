@@ -37,6 +37,10 @@ export interface FoodLabelRecord {
   readonly updatedAt: string;
   readonly archivedAt: string | null;
 }
+export interface FoodLabelRecordPage {
+  readonly items: FoodLabelRecord[];
+  readonly nextCursor?: string | null;
+}
 export interface FoodLabelDashboard {
   readonly total: number;
   readonly products: number;
@@ -76,12 +80,19 @@ export interface RecordDraft {
 export class FoodLabelApi {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiBaseUrl}/food-label`;
-  list(kind: FoodLabelKind | null, archived: boolean, search: string) {
-    let params = new HttpParams().set('archived', archived).set('limit', 100);
+  list(
+    kind: FoodLabelKind | null,
+    archived: boolean,
+    search: string,
+    options: { status?: FoodLabelStatus | null; cursor?: string | null; limit?: number } = {},
+  ) {
+    let params = new HttpParams().set('archived', archived).set('limit', options.limit ?? 50);
     if (kind) params = params.set('kind', kind);
     if (search.trim()) params = params.set('search', search.trim());
+    if (options.status) params = params.set('status', options.status);
+    if (options.cursor) params = params.set('cursor', options.cursor);
     return this.request(
-      this.http.get<Envelope<{ items: FoodLabelRecord[] }>>(`${this.base}/records`, { params }),
+      this.http.get<Envelope<FoodLabelRecordPage>>(`${this.base}/records`, { params }),
     );
   }
   dashboard() {

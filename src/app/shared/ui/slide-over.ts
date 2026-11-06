@@ -1,4 +1,4 @@
-import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, effect, input, output, viewChild } from '@angular/core';
 import Swal from 'sweetalert2';
 import { TranslatePipe } from '../../core/i18n/i18n';
 
@@ -9,7 +9,7 @@ import { TranslatePipe } from '../../core/i18n/i18n';
   template: `
     @if (open()) {
       <div
-        class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm"
+        class="odv-fade-in fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-[2px]"
         (click)="requestClose()"
       ></div>
       <section
@@ -19,18 +19,18 @@ import { TranslatePipe } from '../../core/i18n/i18n';
         [attr.aria-label]="title()"
         tabindex="-1"
         (keydown.tab)="trapFocus($event)"
-        class="fixed inset-y-0 end-0 z-50 flex w-full flex-col overflow-hidden border-s border-slate-200 bg-white shadow-[0_0_80px_rgba(15,23,42,.28)] outline-none dark:border-slate-800 dark:bg-slate-900"
-        [class.max-w-3xl]="wide()"
-        [class.max-w-lg]="!wide()"
+        class="odv-slide-in fixed inset-y-0 end-0 z-50 flex w-full flex-col overflow-hidden border-s border-slate-200 bg-white shadow-[0_0_80px_rgba(15,23,42,.28)] outline-none dark:border-slate-800 dark:bg-slate-900"
+        [class.max-w-lg]="panelSize() === 'md'"
+        [class.max-w-3xl]="panelSize() === 'lg'"
+        [class.max-w-6xl]="panelSize() === 'xl'"
       >
-        <div class="h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>
         <header
-          class="border-b border-slate-200 bg-gradient-to-b from-violet-50/80 to-white px-6 py-5 dark:border-slate-800 dark:from-violet-950/30 dark:to-slate-900 sm:px-8"
+          class="border-b border-slate-200 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900 sm:px-8"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex min-w-0 items-start gap-3">
               <span
-                class="grid size-11 shrink-0 place-items-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-500/25"
+                class="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-500/25"
               >
                 <span class="material-symbols-rounded">{{ icon() }}</span>
               </span>
@@ -64,7 +64,7 @@ import { TranslatePipe } from '../../core/i18n/i18n';
         </header>
         <form class="flex min-h-0 flex-1 flex-col" (submit)="submit($event)">
           <div
-            class="custom-scroll flex-1 space-y-6 overflow-y-auto overscroll-contain bg-slate-50/60 p-5 dark:bg-slate-950/30 sm:p-8"
+            class="custom-scroll flex-1 space-y-6 overflow-y-auto overscroll-contain bg-slate-50 p-5 dark:bg-slate-950/40 sm:p-8"
           >
             <ng-content />
           </div>
@@ -100,6 +100,9 @@ export class SlideOver {
   readonly icon = input('edit_note');
   readonly dirty = input(false);
   readonly wide = input(false);
+  /** Panel width; `wide` is kept as a shortcut for `lg`. */
+  readonly size = input<'md' | 'lg' | 'xl' | null>(null);
+  readonly panelSize = computed(() => this.size() ?? (this.wide() ? 'lg' : 'md'));
   readonly submitting = input(false);
   readonly submitLabel = input('Kaydet');
   readonly closed = output<void>();
